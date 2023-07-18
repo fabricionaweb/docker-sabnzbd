@@ -25,6 +25,6 @@ jobs:
       - name: Commit new release
         run: |
           NEW_VERSION=${{ github.event.inputs.version }}
-          sed -i "s/VERSION=.*/VERSION=$NEW_VERSION/" .env
+          sed -i "s/^VERSION=.*/VERSION=$NEW_VERSION/" .env
           git commit -am "upgrade to $NEW_VERSION"
           git push
