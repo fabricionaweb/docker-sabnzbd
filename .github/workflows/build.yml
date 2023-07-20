@@ -46,9 +46,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get short commit SHA
-        run: echo "COMMIT=$(git rev-parse --short HEAD)" >>"$GITHUB_ENV"
-
       - name: Get environment from a file
         run: cat .env >>"$GITHUB_ENV"
 
@@ -62,7 +59,8 @@ jobs:
           build-args: |
             BRANCH=${{ env.BRANCH }}
             VERSION=${{ env.VERSION }}
-            COMMIT=${{ env.COMMIT }}
+            UNRAR_VERSION=${{ env.UNRAR_VERSION }}
+            PAR2_VERSION=${{ env.PAR2_VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:${{ env.BRANCH }}
           cache-to: type=inline
