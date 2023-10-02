@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1-labs
 FROM public.ecr.aws/docker/library/alpine:3.18 AS base
 
-# source stage
+# source stage =================================================================
 FROM base AS source
 
 WORKDIR /src
@@ -21,7 +21,7 @@ ADD https://github.com/sabnzbd/sabnzbd.git#$VERSION ./
 # COPY patches ./
 # RUN find . -name "*.patch" -print0 | sort -z | xargs -t -0 -n1 patch -p1 -i
 
-# unrar stage
+# unrar stage ==================================================================
 FROM base as build-unrar
 
 WORKDIR /src
@@ -30,11 +30,6 @@ ARG UNRAR_VERSION=6.2.8
 # get and extract
 RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz --strip-component 1
 
-# print versions
-RUN echo "----------------------------" && \
-    echo "unrar: $UNRAR_VERSION" && \
-    echo "----------------------------"
-
 # dependencies
 RUN apk add --no-cache build-base
 
@@ -42,7 +37,7 @@ RUN apk add --no-cache build-base
 RUN make && \
     make install
 
-# par2cmdline-turbo stage
+# par2cmdline-turbo stage  =====================================================
 FROM base as build-par2
 
 WORKDIR /src
@@ -51,40 +46,26 @@ ARG PAR2_VERSION=1.0.1
 # get and extract source from git
 ADD https://github.com/animetosho/par2cmdline-turbo.git#v$PAR2_VERSION ./
 
-# print versions
-RUN echo "----------------------------" && \
-    echo "par2cmdline: $PAR2_VERSION" && \
-    echo "----------------------------"
-
 # dependencies
 RUN apk add --no-cache build-base automake autoconf
 
 # build
 RUN ./automake.sh && \
-    ./configure --prefix=/usr --enable-openmp && \
+    ./configure --prefix=/usr && \
     make && \
     make install
 
-# backend stage
+# backend stage ================================================================
 FROM source AS build-backend
 
 # dependencies
 RUN apk add --no-cache build-base python3-dev libffi-dev
 
 # creates python env
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install -r requirements.txt
 
-# print versions
-RUN echo "----------------------------" && \
-    echo "python:  $(python --version | awk '{print $2}')" && \
-    echo "sabnzbd: $VERSION @ $BRANCH" && \
-    echo "----------------------------"
-
-# install requeriments
-RUN pip install -r requirements.txt
-
-# runtime stage
+# runtime stage ================================================================
 FROM base
 
 ENV S6_VERBOSITY=0 S6_BEHAVIOUR_IF_STAGE2_FAILS=2 PUID=65534 PGID=65534
