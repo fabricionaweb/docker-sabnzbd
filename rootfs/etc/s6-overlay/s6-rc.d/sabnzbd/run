@@ -2,5 +2,6 @@
 
 # change chdir
 cd /config
+
 # run with limited permissions
-exec s6-setuidgid $PUID:$PGID python3 /app/SABnzbd.py --config-file=/config/sabnzbd.ini --server 0.0.0.0
+exec s6-setuidgid $PUID:$PGID python3 /app/SABnzbd.py --config-file=/config/sabnzbd.ini --server=0.0.0.0
