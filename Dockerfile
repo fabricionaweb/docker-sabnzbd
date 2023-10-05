@@ -2,6 +2,8 @@
 FROM public.ecr.aws/docker/library/alpine:3.18 AS base
 ARG BRANCH
 ARG VERSION
+ARG UNRAR_VERSION=6.2.8
+ARG PAR2_VERSION=1.0.1
 ENV TZ=UTC
 
 # source stage =================================================================
@@ -23,9 +25,7 @@ ADD https://github.com/sabnzbd/sabnzbd.git#$VERSION ./
 
 # unrar stage ==================================================================
 FROM base as build-unrar
-
 WORKDIR /src
-ARG UNRAR_VERSION=6.2.8
 
 # get and extract
 RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz --strip-component 1
@@ -34,14 +34,11 @@ RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz
 RUN apk add --no-cache build-base
 
 # build
-RUN make && \
-    make install
+RUN make && make install
 
 # par2cmdline-turbo stage  =====================================================
 FROM base as build-par2
-
 WORKDIR /src
-ARG PAR2_VERSION=1.0.1
 
 # get and extract source from git
 ADD https://github.com/animetosho/par2cmdline-turbo.git#v$PAR2_VERSION ./
@@ -50,13 +47,12 @@ ADD https://github.com/animetosho/par2cmdline-turbo.git#v$PAR2_VERSION ./
 RUN apk add --no-cache build-base automake autoconf
 
 # build
-RUN ./automake.sh && \
-    ./configure --prefix=/usr && \
-    make && \
-    make install
+RUN ./automake.sh && ./configure --prefix=/usr && \
+    make && make install
 
 # backend stage ================================================================
 FROM base AS build-backend
+WORKDIR /src
 
 # dependencies
 RUN apk add --no-cache build-base python3-dev libffi-dev
@@ -77,8 +73,8 @@ VOLUME /config
 EXPOSE 8080
 
 # copy files
-COPY --from=build-unrar /usr/bin/unrar /usr/bin/unrar
-COPY --from=build-par2 /usr/bin/par2 /usr/bin/par2
+COPY --from=build-unrar /usr/bin/unrar /usr/bin/
+COPY --from=build-par2 /usr/bin/par2 /usr/bin/
 COPY --from=build-backend /opt/venv /opt/venv
 COPY --from=source /src /app
 COPY ./rootfs /
