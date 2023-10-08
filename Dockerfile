@@ -25,11 +25,11 @@ ADD https://github.com/sabnzbd/sabnzbd.git#$VERSION ./
 FROM base as build-unrar
 WORKDIR /src
 
-# get and extract
-RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz --strip-component 1
-
 # dependencies
 RUN apk add --no-cache build-base
+
+# get and extract
+RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz --strip-component 1
 
 # build
 RUN make && make install
@@ -38,11 +38,11 @@ RUN make && make install
 FROM base as build-par2
 WORKDIR /src
 
-# get and extract source from git
-ADD https://github.com/animetosho/par2cmdline-turbo.git#v$PAR2_VERSION ./
-
 # dependencies
 RUN apk add --no-cache build-base automake autoconf
+
+# get and extract source from git
+ADD https://github.com/animetosho/par2cmdline-turbo.git#v$PAR2_VERSION ./
 
 # build
 RUN ./automake.sh && ./configure --prefix=/usr && \
@@ -62,6 +62,12 @@ COPY --from=source /src/requirements.txt ./
 RUN python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install -r requirements.txt
 
+# translations
+COPY --from=source /src/po ./po
+COPY --from=source /src/email ./email
+COPY --from=source /src/tools/msgfmt.py /src/tools/make_mo.py ./
+RUN /opt/venv/bin/python make_mo.py
+
 # runtime stage ================================================================
 FROM base
 
@@ -70,15 +76,19 @@ WORKDIR /config
 VOLUME /config
 EXPOSE 8080
 
+# runtime dependencies
+RUN apk add --no-cache tzdata s6-overlay libgomp python3 7zip curl
+
 # copy files
+COPY --from=source /src/sabnzbd /app/sabnzbd
+COPY --from=source /src/interfaces /app/interfaces
+COPY --from=source /src/SABnzbd.py /app/
 COPY --from=build-unrar /usr/bin/unrar /usr/bin/
 COPY --from=build-par2 /usr/bin/par2 /usr/bin/
 COPY --from=build-backend /opt/venv /opt/venv
-COPY --from=source /src /app
+COPY --from=build-backend /src/email /app/email
+COPY --from=build-backend /src/locale /app/locale
 COPY ./rootfs /
-
-# runtime dependencies
-RUN apk add --no-cache tzdata s6-overlay libgomp python3 7zip curl
 
 # creates python env
 ENV PATH="/opt/venv/bin:$PATH"
