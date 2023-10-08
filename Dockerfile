@@ -1,19 +1,13 @@
 # syntax=docker/dockerfile:1-labs
 FROM public.ecr.aws/docker/library/alpine:3.18 AS base
-ARG BRANCH
-ARG VERSION
-ARG UNRAR_VERSION=6.2.8
-ARG PAR2_VERSION=1.0.1
 ENV TZ=UTC
 
 # source stage =================================================================
 FROM base AS source
 WORKDIR /src
 
-# mandatory build-arg
-RUN test -n "$BRANCH" && test -n "$VERSION"
-
 # get and extract source from git
+ARG VERSION
 ADD https://github.com/sabnzbd/sabnzbd.git#$VERSION ./
 
 # apply available patches
@@ -29,6 +23,7 @@ WORKDIR /src
 RUN apk add --no-cache build-base
 
 # get and extract
+ARG UNRAR_VERSION=6.2.8
 RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz --strip-component 1
 
 # build
@@ -42,6 +37,7 @@ WORKDIR /src
 RUN apk add --no-cache build-base automake autoconf
 
 # get and extract source from git
+ARG PAR2_VERSION=1.0.1
 ADD https://github.com/animetosho/par2cmdline-turbo.git#v$PAR2_VERSION ./
 
 # build
