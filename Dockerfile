@@ -84,7 +84,7 @@ COPY --from=build-par2 /usr/bin/par2 /usr/bin/
 COPY --from=build-backend /opt/venv /opt/venv
 COPY --from=build-backend /src/email /app/email
 COPY --from=build-backend /src/locale /app/locale
-COPY ./rootfs /
+COPY ./rootfs/. /
 
 # creates python env
 ENV PATH="/opt/venv/bin:$PATH"
