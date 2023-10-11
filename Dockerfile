@@ -35,7 +35,7 @@ ADD https://github.com/animetosho/par2cmdline-turbo.git#v$PAR2_VERSION ./
 
 # build
 RUN ./automake.sh && ./configure --prefix=/usr && \
-    make && make install
+    make && make install-strip
 
 # backend stage ================================================================
 FROM base AS build-backend
@@ -72,7 +72,7 @@ COPY --from=source /src/sabnzbd /app/sabnzbd
 COPY --from=source /src/interfaces /app/interfaces
 COPY --from=source /src/SABnzbd.py /app/
 COPY --from=build-unrar /usr/bin/unrar /usr/bin/
-COPY --from=build-par2 /usr/bin/par2 /usr/bin/
+COPY --from=build-par2 /usr/bin/par2* /usr/bin/
 COPY --from=build-backend /opt/venv /opt/venv
 COPY --from=build-backend /src/email /app/email
 COPY --from=build-backend /src/locale /app/locale
