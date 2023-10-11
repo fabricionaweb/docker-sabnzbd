@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1-labs
 FROM public.ecr.aws/docker/library/alpine:3.18 AS base
 ENV TZ=UTC
+WORKDIR /src
 
 # source stage =================================================================
 FROM base AS source
-WORKDIR /src
 
 # get and extract source from git
 ARG VERSION
@@ -12,7 +12,6 @@ ADD https://github.com/sabnzbd/sabnzbd.git#$VERSION ./
 
 # unrar stage ==================================================================
 FROM base as build-unrar
-WORKDIR /src
 
 # dependencies
 RUN apk add --no-cache build-base
@@ -26,7 +25,6 @@ RUN make && make install
 
 # par2cmdline-turbo stage  =====================================================
 FROM base as build-par2
-WORKDIR /src
 
 # dependencies
 RUN apk add --no-cache build-base automake autoconf
@@ -41,7 +39,6 @@ RUN ./automake.sh && ./configure --prefix=/usr && \
 
 # backend stage ================================================================
 FROM base AS build-backend
-WORKDIR /src
 
 # dependencies
 RUN apk add --no-cache build-base python3-dev libffi-dev
