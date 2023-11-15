@@ -7,8 +7,9 @@ WORKDIR /src
 FROM base AS source
 
 # get and extract source from git
+ARG BRANCH
 ARG VERSION
-ADD https://github.com/sabnzbd/sabnzbd.git#$VERSION ./
+ADD https://github.com/sabnzbd/sabnzbd.git#${BRANCH:-$VERSION} ./
 
 # unrar stage ==================================================================
 FROM base as build-unrar
