@@ -65,9 +65,6 @@ WORKDIR /config
 VOLUME /config
 EXPOSE 8080
 
-# runtime dependencies
-RUN apk add --no-cache tzdata s6-overlay libgomp python3 7zip curl
-
 # copy files
 COPY --from=source /src/sabnzbd /app/sabnzbd
 COPY --from=source /src/interfaces /app/interfaces
@@ -78,6 +75,9 @@ COPY --from=build-backend /opt/venv /opt/venv
 COPY --from=build-backend /src/email /app/email
 COPY --from=build-backend /src/locale /app/locale
 COPY ./rootfs/. /
+
+# runtime dependencies
+RUN apk add --no-cache tzdata s6-overlay libgomp python3 7zip curl
 
 # creates python env
 ENV PATH="/opt/venv/bin:$PATH"
