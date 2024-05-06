@@ -15,14 +15,16 @@ ADD https://github.com/sabnzbd/sabnzbd.git#${BRANCH:-$VERSION} ./
 FROM base as build-unrar
 
 # dependencies
-RUN apk add --no-cache build-base
+RUN apk add --no-cache build-base linux-headers
 
 # get and extract
 ARG UNRAR_VERSION=6.2.8
 RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz --strip-component 1
 
 # build
-RUN make && make install
+RUN sed -i 's|LDFLAGS=-pthread|LDFLAGS=-pthread -static|' makefile && \
+    sed -i 's|CXXFLAGS=-march=native |CXXFLAGS=|' makefile && \
+    make && make install
 
 # par2cmdline-turbo stage  =====================================================
 FROM base as build-par2
