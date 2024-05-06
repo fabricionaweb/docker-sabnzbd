@@ -21,10 +21,13 @@ RUN apk add --no-cache build-base linux-headers
 ARG UNRAR_VERSION=6.2.8
 RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz --strip-component 1
 
+# apply available patches
+RUN apk add --no-cache patch
+COPY patches/unrar ./
+RUN find ./ -name "*.patch" -print0 | sort -z | xargs -t -0 -n1 patch -p1 -i
+
 # build
-RUN sed -i 's|LDFLAGS=-pthread|LDFLAGS=-pthread -static|' makefile && \
-    sed -i 's|CXXFLAGS=-march=native |CXXFLAGS=|' makefile && \
-    make && make install
+RUN make && make install
 
 # par2cmdline-turbo stage  =====================================================
 FROM base as build-par2
