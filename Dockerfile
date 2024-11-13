@@ -12,7 +12,7 @@ ARG VERSION
 ADD https://github.com/sabnzbd/sabnzbd.git#${BRANCH:-$VERSION} ./
 
 # unrar stage ==================================================================
-FROM base as build-unrar
+FROM base AS build-unrar
 
 # dependencies
 RUN apk add --no-cache build-base linux-headers
@@ -25,7 +25,7 @@ RUN wget -qO- https://www.rarlab.com/rar/unrarsrc-$UNRAR_VERSION.tar.gz | tar xz
 RUN make && make install
 
 # par2cmdline-turbo stage  =====================================================
-FROM base as build-par2
+FROM base AS build-par2
 
 # dependencies
 RUN apk add --no-cache build-base automake autoconf
